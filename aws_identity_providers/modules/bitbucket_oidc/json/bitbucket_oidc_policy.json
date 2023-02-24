@@ -1,0 +1,19 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AssumeRole",
+            "Effect": "Allow",
+            "Action": [
+                "sts:GetSessionToken",
+                "sts:AssumeRole",
+                "sts:GetFederationToken",
+                "sts:GetAccessKeyInfo",
+                "sts:GetCallerIdentity",
+                "sts:GetServiceBearerToken",
+                "sts:AssumeRoleWithWebIdentity"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

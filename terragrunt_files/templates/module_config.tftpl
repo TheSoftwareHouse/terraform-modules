@@ -1,0 +1,10 @@
+# ${warning_msg}
+include "config" {
+  path = find_in_parent_folders("config.hcl")
+}
+
+include "${terragrunt_module_name}" {
+  path = "$${get_repo_root()}/${terragrunt_templates_dir}/${terragrunt_module_name}.hcl"
+}
+
+# additional custom inputs?

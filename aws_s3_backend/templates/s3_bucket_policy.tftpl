@@ -1,0 +1,47 @@
+{
+  "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Sid" : "EnforcedTLS",
+          "Effect" : "Deny",
+          "Principal" : "*",
+          "Action" : "s3:*",
+          "Resource" : [
+            "arn:aws:s3:::tsh-${root_name}-state",
+            "arn:aws:s3:::tsh-${root_name}-state/*"
+          ],
+          "Condition" : {
+            "Bool" : {
+              "aws:SecureTransport" : "false"
+            }
+          }
+        },
+        {
+          "Sid" : "RootAccess",
+          "Effect" : "Allow",
+          "Principal" : {
+            "AWS" : "arn:aws:iam::579187305311:root"
+          },
+          "Action" : "s3:*",
+          "Resource" : [
+            "arn:aws:s3:::tsh-${root_name}-state",
+            "arn:aws:s3:::tsh-${root_name}-state/*"
+          ]
+        },
+        {
+          "Sid" : "AllowTLSRequestsOnly",
+          "Effect" : "Deny",
+          "Principal" : "*",
+          "Action" : "s3:*",
+          "Resource" : [
+            "arn:aws:s3:::tsh-${root_name}-state",
+            "arn:aws:s3:::tsh-${root_name}-state/*"
+          ],
+          "Condition" : {
+            "Bool" : {
+              "aws:SecureTransport" : "false"
+            }
+          }
+        }
+      ]
+    }
