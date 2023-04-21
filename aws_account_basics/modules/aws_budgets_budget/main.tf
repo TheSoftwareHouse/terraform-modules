@@ -1,4 +1,6 @@
 resource "aws_budgets_budget" "this" {
+  provider = aws.regional
+
   name         = var.name
   budget_type  = var.budget_type
   limit_amount = var.limit_amount
