@@ -1,3 +1,3 @@
 output "account_alias" {
-  value = aws_iam_account_alias.this.account_alias
+  value = module.aws_account_alias.account_alias
 }
