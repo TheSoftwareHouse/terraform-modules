@@ -14,7 +14,9 @@ module "aws_account_alternate_contacts" {
 module "aws_budget_current" {
   source = "./modules/aws_budgets_budget"
 
-  provider = aws.regional
+  providers = {
+    aws = aws.regional
+  }
 
   name                                    = "Current Budget (${var.alias_prefix}-${var.account_alias})"
   limit_amount                            = var.budget_current_limit_amount
@@ -27,7 +29,9 @@ module "aws_budget_current" {
 module "aws_budget_forecasted" {
   source = "./modules/aws_budgets_budget"
 
-  provider = aws.regional
+  providers = {
+    aws = aws.regional
+  }
 
   name                                    = "Forecasted Budget (${var.alias_prefix}-${var.account_alias})"
   limit_amount                            = var.budget_forecasted_limit_amount
@@ -40,7 +44,9 @@ module "aws_budget_forecasted" {
 module "aws_cost_anomaly_detection" {
   source = "./modules/aws_cloudformation_stack"
 
-  provider = aws.regional
+  providers = {
+    aws = aws.regional
+  }
 
   name = "anomaly-detection-${var.alias_prefix}-${var.account_alias}"
   template_body = templatefile("./templates/cost_anomaly_detection.json", {
