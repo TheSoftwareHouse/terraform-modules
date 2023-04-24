@@ -88,13 +88,6 @@ resource "aws_ecs_account_setting_default" "this" {
   value = "enabled"
 }
 
-data "aws_caller_identity" "current" {}
-
-resource "aws_inspector2_delegated_admin_account" "this" {
-  count      = var.is_mgmt_account ? 1 : 0
-  account_id = var.delegated_admin_account_id
-}
-
 resource "aws_inspector2_enabler" "this" {
   account_ids    = [data.aws_caller_identity.current.account_id]
   resource_types = ["EC2", "ECR", "LAMBDA"]
