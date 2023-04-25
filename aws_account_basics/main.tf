@@ -45,7 +45,7 @@ module "aws_cost_anomaly_detection" {
   source = "./modules/aws_cloudformation_stack"
 
   providers = {
-    aws = aws.regional
+    aws = aws.global
   }
 
   name = "anomaly-detection-${var.alias_prefix}-${var.account_alias}"
