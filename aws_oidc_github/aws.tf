@@ -1,7 +1,6 @@
 resource "aws_iam_role" "ci_role" {
   name               = var.role_name
   assume_role_policy = data.aws_iam_policy_document.allow_ci.json
-  tags               = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "github_admin" {
