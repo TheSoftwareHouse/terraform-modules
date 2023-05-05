@@ -26,7 +26,7 @@ data "aws_iam_policy_document" "allow_ci" {
     condition {
       test     = "ForAllValues:StringLike"
       variable = "${aws_iam_openid_connect_provider.github.url}:sub"
-      values   = [for repo in var.github_repos : "repo:${var.github_org}/${repo}"]
+      values   = [for repo in var.github_repos : "repo:${var.github_org}/${repo}:*"]
     }
   }
 }
