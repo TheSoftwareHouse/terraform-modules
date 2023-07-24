@@ -53,3 +53,8 @@ variable "cost_anomaly_report_frequency" {
   type    = string
   default = "DAILY"
 }
+
+variable "s3_block_public_access" {
+  type    = bool
+  default = true
+}

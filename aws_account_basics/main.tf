@@ -69,10 +69,10 @@ resource "aws_iam_account_password_policy" "this" {
 }
 
 resource "aws_s3_account_public_access_block" "this" {
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+  block_public_acls       = var.s3_block_public_access
+  block_public_policy     = var.s3_block_public_access
+  ignore_public_acls      = var.s3_block_public_access
+  restrict_public_buckets = var.s3_block_public_access
 }
 
 resource "aws_ebs_encryption_by_default" "this" {
