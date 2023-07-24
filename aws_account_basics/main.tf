@@ -88,7 +88,8 @@ resource "aws_ecs_account_setting_default" "this" {
   value = "enabled"
 }
 
-resource "aws_inspector2_enabler" "this" {
-  account_ids    = [data.aws_caller_identity.current.account_id]
-  resource_types = ["EC2", "ECR", "LAMBDA"]
-}
+# do not enable for now, generates costs. enable only in special cases (add if-ology)
+# resource "aws_inspector2_enabler" "this" {
+#   account_ids    = [data.aws_caller_identity.current.account_id]
+#   resource_types = ["EC2", "ECR", "LAMBDA"]
+# }
