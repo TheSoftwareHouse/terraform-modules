@@ -1,35 +1,40 @@
-variable "identity_providers" {
-  type = map(object(
-    {
-      identity_provider_url = string
-      audience              = string
-      thumbprints           = list(string)
-    }
-  ))
+variable "identity_provider_url" {
+  type        = string
   description = ""
 
   validation {
-    condition     = alltrue([for provider in var.identity_providers : startswith(provider.identity_provider_url, "https://")])
+    condition     = startswith(var.identity_provider_url, "https://")
     error_message = "The identity_provider_url must begin with 'https://'."
-  }
-
-  validation {
-    condition     = alltrue([for provider in var.identity_providers : length(provider.thumbprints) <= 5 && length(provider.thumbprints) == length(distinct(provider.thumbprints))])
-    error_message = "All thumbprints must be unique. The maximum number is 5."
   }
 }
 
-variable "roles" {
-  type = map(object(
+variable "audience" {
+  type        = string
+  description = ""
+}
+
+variable "thumbprints" {
+  type        = list(string)
+  default     = []
+  description = ""
+}
+
+variable "repositories" {
+  type = list(object(
     {
-      provider         = string
-      repository_uuids = list(string)
+      name                            = string
+      uuid                            = string
+      environment_names               = optional(list(string), [])
+      environment_uuids               = optional(list(string), [])
+      iam_role_additional_policy_arns = optional(list(string), [])
     }
   ))
+  default     = []
   description = ""
+}
 
-  validation {
-    condition     = alltrue([for role in var.roles : can([for repo in role.repository_uuids : regex("^{([0-9a-z]+[-])+([0-9a-z]+)}$", repo)])])
-    error_message = "The repository_uuid must consist of characters in the ranges [a-z], [0-9] and '-'. The repository_uuid must start with '{' and end with '}' characters."
-  }
+variable "tags" {
+  type        = map(string)
+  default     = {}
+  description = ""
 }

@@ -5,20 +5,28 @@ Terraform module which creates OIDC provider and access roles for specific Bitbu
 ## Usage
 
 ```hcl
-module "aws-bitbucket-oidc-provider" {
-  source = "git::ssh://git@bitbucket.org/thesoftwarehouse/terraform-modules.git//aws_bitbucket_oidc_provider?ref=main"
+module "bitbucket_oidc_provider" {
+  source = "../modules/bitbucket_oidc_provider"
 
   # Open a Bitbucket repository and go to Repository settings -> OpenID Connect in the Pipelines section to get all the details.
   identity_provider_url = "<PROVIDER_URL>"
   audience              = "<AUDIENCE>"
+  thumbprints           = ["<THUMBPRINT>"]
 
-  thumbprints = ["<THUMBPRINT>"]
+  repositories = [
+    {
+      name = "<REPOSITORY_NAME>"
+      uuid = "<REPOSITORY_UUID>"
 
-  roles = {
-    "<ROLE_NAME>" = {
-      create           = true
-      repository_uuids = ["{<REPOSITORY_UUID>}"]
+      environment_names = [
+        "Staging",
+        "Production"
+      ]
+      environment_uuids = [
+        "<ENV_UUID>",
+        "<ENV_UUID>"
+      ]
     }
-  }
+  ]
 }
 ```
