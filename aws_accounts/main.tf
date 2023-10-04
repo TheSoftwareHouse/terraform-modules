@@ -5,7 +5,7 @@ resource "aws_organizations_account" "this" {
 
   parent_id = each.value["organization_unit"]
 
-  tags = var.tags
+  tags = each.value["tags"]
 
   # There is no AWS Organizations API for reading role_name
   lifecycle {
