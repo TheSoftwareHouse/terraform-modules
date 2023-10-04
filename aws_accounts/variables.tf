@@ -3,10 +3,7 @@ variable "accounts" {
     {
       email             = string
       organization_unit = string
+      tags              = map(string)
     }
   ))
-}
-
-variable "tags" {
-  type = map(string)
 }
