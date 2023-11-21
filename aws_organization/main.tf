@@ -1,5 +1,6 @@
 resource "aws_organizations_organization" "this" {
   aws_service_access_principals = [
+    "account.amazonaws.com",
     "access-analyzer.amazonaws.com",
     "auditmanager.amazonaws.com",
     "aws-artifact-account-sync.amazonaws.com",
@@ -12,6 +13,7 @@ resource "aws_organizations_organization" "this" {
     "ds.amazonaws.com",
     "fms.amazonaws.com",
     "guardduty.amazonaws.com",
+    "inspector2.amazonaws.com",
     "license-manager.amazonaws.com",
     "license-manager.member-account.amazonaws.com",
     "macie.amazonaws.com",
