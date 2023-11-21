@@ -1,19 +1,11 @@
-# aws_organizational_units
-variable "organizational_units" {
-  type        = list(any)
-  description = "A nested list of Organizational Units to create in the organization."
-}
-
-# aws_accounts
-variable "accounts" {
+variable "organization_units" {
   type = map(object(
     {
-      email             = string
-      ou                = string
-      close_on_deletion = optional(bool)
-      tags              = optional(map(string))
+      parent_id = string
     }
   ))
-  
-  description = ""
+}
+
+variable "tags" {
+  type = map(string)
 }
