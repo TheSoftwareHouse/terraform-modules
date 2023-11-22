@@ -1,0 +1,29 @@
+{
+  "Resources": {
+    "AnomalyServiceMonitor": {
+      "Type": "AWS::CE::AnomalyMonitor",
+      "Properties": {
+        "MonitorName": "${monitor_name}",
+        "MonitorType": "DIMENSIONAL",
+        "MonitorDimension": "SERVICE"
+      }
+    },
+    "AnomalySubscription": {
+      "Type": "AWS::CE::AnomalySubscription",
+      "Properties": {
+        "SubscriptionName": "${monitor_name} Subscription",
+        "Threshold": "${cost_threshold}",
+        "Frequency": "${frequency}",
+        "MonitorArnList": [
+         { "Ref": "AnomalyServiceMonitor"}
+        ],
+        "Subscribers": [
+          {
+            "Type": "EMAIL",
+            "Address": "${subscription_email}"
+          }
+        ]
+      }
+    }
+  }
+}
