@@ -13,4 +13,77 @@ locals {
     "XDT_MicrosoftApplicationInsights_PreemptSdk"     = "disabled"
     "APPLICATIONINSIGHTS_CONFIGURATION_CONTENT"       = var.application_insights_CONFIGURATION_CONTENT
   }
+
+  vnet_address_space  = ["10.0.0.0/16"]
+
+  subnet_app = [
+    {
+      name             = "snet-${var.project}${var.environment}-app"
+      address_prefixes = ["10.0.1.0/24"]
+      subnet_delegations = [
+        {
+          name         = "appService"
+          service_name = "Microsoft.Web/serverFarms"
+          service_actions = [
+            "Microsoft.Network/virtualNetworks/subnets/join/action"
+          ]
+        }
+      ]
+    }
+  ]
+
+  subnet_postgresql = var.enable_postgresql == false ? [] : [
+    {
+      name             = "snet-${var.project}${var.environment}-postgres"
+      address_prefixes = ["10.0.2.0/24"]
+      subnet_delegations = [
+        {
+          name         = "flexibleServer"
+          service_name = "Microsoft.DBforPostgreSQL/flexibleServers"
+          service_actions = [
+            "Microsoft.Network/virtualNetworks/subnets/join/action"
+          ]
+        }
+      ]
+    }
+  ]
+
+  subnet_mysql = var.enable_mysql == false ? [] :[
+    {
+      name             = "snet-${var.project}${var.environment}-mysql"
+      address_prefixes = ["10.0.2.0/24"]
+      subnet_delegations = [
+       {
+          name         = "flexibleServer"
+          service_name = "Microsoft.DBforMySQL/flexibleServers"
+          service_actions = [
+            "Microsoft.Network/virtualNetworks/subnets/join/action"
+          ]
+        }
+      ]
+    }
+  ]
+
+  dns_zone_postgresql = var.enable_postgresql == false ? [] : [
+    {
+      name = "privatelink.postgres.database.azure.com"
+      type = "psql"
+    }
+  ]
+  
+  dns_zone_mysql = var.enable_mysql == false ? [] : [
+    {
+      name = "privatelink.mysql.database.azure.com"
+      type = "mysql"
+    }
+  ]
+
+  random_config = {
+    login_length          = 16
+    login_min_lower       = 8
+    pass_length           = 24
+    pass_override_special = "!#$%&*()-_=+[]{}<>:?"
+    login_special = false
+    pass_special = true
+  }
 }

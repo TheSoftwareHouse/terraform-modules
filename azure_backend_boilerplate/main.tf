@@ -95,7 +95,7 @@ resource "azurerm_linux_web_app" "this" {
 
   https_only = true
 
-  #virtual_network_subnet_id = local.virtual_network_subnet_id
+  virtual_network_subnet_id = azurerm_subnet.this["snet-${var.project}${var.environment}-app"].id
 
   site_config {
     container_registry_use_managed_identity = true
@@ -170,7 +170,172 @@ resource "azurerm_application_insights" "this" {
 #################################################################
 # VIRTUAL NETWORK
 #################################################################
+resource "azurerm_virtual_network" "this" {
+  name                = "vnet-${var.project}${var.environment}"
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+  address_space       = local.vnet_address_space
+}
+
+#################################################################
+# VIRTUAL NETWORK SUBNETS
+#################################################################
+resource "azurerm_subnet" "this" {
+  for_each = { for subnet in concat(local.subnet_app, local.subnet_postgresql, local.subnet_mysql) : subnet.name => subnet }
+
+  name                 = each.value.name
+  resource_group_name  = azurerm_resource_group.this.name
+  virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = each.value.address_prefixes
+
+  dynamic "delegation" {
+    for_each = each.value.subnet_delegations != null ? each.value.subnet_delegations : []
+    content {
+      name = delegation.value.name
+      service_delegation {
+        name    = delegation.value.service_name
+        actions = delegation.value.service_actions
+      }
+    }
+  }
+}
+
+#################################################################
+# PRIVATE DNS ZONE
+#################################################################
+resource "azurerm_private_dns_zone" "this" {
+  for_each = { for dns_zone in concat(local.dns_zone_postgresql, local.dns_zone_mysql) : dns_zone.name => dns_zone }
+  name                = each.value.name
+  resource_group_name = azurerm_resource_group.this.name
+}
+
+#################################################################
+# VIRTUAL NETWORK LINK
+#################################################################
+resource "azurerm_private_dns_zone_virtual_network_link" "this" {
+  for_each = { for dns_zone in concat(local.dns_zone_postgresql, local.dns_zone_mysql) : dns_zone.name => dns_zone }
+  name                  = "vdn-${each.value.type}-${var.project}${var.environment}"
+  private_dns_zone_name = each.value.name
+  resource_group_name   = azurerm_resource_group.this.name
+  virtual_network_id    = azurerm_virtual_network.this.id
+}
+
+################################################################
+# RANDOMS
+################################################################
+resource "random_string" "this" {
+  length    = local.random_config.login_length
+  special   = local.random_config.login_special
+  min_lower = local.random_config.login_min_lower
+}
+
+resource "random_password" "this" {
+  length           = local.random_config.pass_length
+  special          = local.random_config.pass_special
+  override_special = local.random_config.pass_override_special
+}
+
+################################################################
+# POSTGRESQL FLEXIBLE SERVER
+################################################################
+resource "azurerm_postgresql_flexible_server" "this" {
+  count               = var.enable_postgresql ? 1 : 0
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+
+  name                   = "psql-${var.project}${var.environment}"
+  delegated_subnet_id    = azurerm_subnet.this["snet-${var.project}${var.environment}-postgres"].id
+  private_dns_zone_id    = azurerm_private_dns_zone.this["privatelink.postgres.database.azure.com"].id
+  administrator_login    = var.psql_administrator_login == null ? random_string.this.result : var.psql_administrator_login
+  administrator_password = var.psql_administrator_password == null ? random_password.this.result : var.psql_administrator_password
+
+  backup_retention_days        = var.psql_backup_retention_days
+  geo_redundant_backup_enabled = var.psql_geo_redundant_backup_enabled
+
+  dynamic "high_availability" {
+    for_each = var.psql_high_availability != null ? [var.psql_high_availability] : []
+    content {
+      mode                      = high_availability.value.mode
+      standby_availability_zone = high_availability.value.standby_availability_zone
+    }
+  }
+
+  dynamic "maintenance_window" {
+    for_each = var.psql_maintenance_window != null ? [var.psql_maintenance_window] : []
+    content {
+      day_of_week  = maintenance_window.value.day_of_week
+      start_hour   = maintenance_window.value.start_hour
+      start_minute = maintenance_window.value.start_minute
+    }
+  }
+
+  version    = var.psql_engine_version
+  sku_name   = var.psql_sku_name
+  storage_mb = var.psql_storage_mb
+  zone       = var.psql_zone
+}
+
+#################################################################
+# MYSQL FLEXIBLE SERVER
+#################################################################
+resource "azurerm_mysql_flexible_server" "this" {
+  count               = var.enable_mysql ? 1 : 0
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+
+  name                   = "mysql-${var.project}${var.environment}"
+  delegated_subnet_id    = azurerm_subnet.this["snet-${var.project}${var.environment}-mysql"].id
+  private_dns_zone_id    = azurerm_private_dns_zone.this["privatelink.mysql.database.azure.com"].id
+  administrator_login    = var.mysql_administrator_login == null ? random_string.this.result : var.mysql_administrator_login
+  administrator_password = var.mysql_administrator_password == null ? random_password.this.result : var.mysql_administrator_password
+
+  backup_retention_days        = var.mysql_backup_retention_days
+  geo_redundant_backup_enabled = var.mysql_geo_redundant_backup_enabled
+
+  dynamic "high_availability" {
+    for_each = var.mysql_high_availability != null ? [var.mysql_high_availability] : []
+    content {
+      mode                      = high_availability.value.mode
+      standby_availability_zone = high_availability.value.standby_availability_zone
+    }
+  }
+
+  dynamic "maintenance_window" {
+    for_each = var.mysql_maintenance_window != null ? [var.mysql_maintenance_window] : []
+    content {
+      day_of_week  = maintenance_window.value.day_of_week
+      start_hour   = maintenance_window.value.start_hour
+      start_minute = maintenance_window.value.start_minute
+    }
+  }
+
+  dynamic "storage" {
+    for_each = var.mysql_storage != null ? [var.mysql_storage] : []
+    content {
+      auto_grow_enabled = storage.auto_grow_enabled
+      iops              = storage.iops
+      size_gb           = storage.size_gb
+    }
+  }
+
+  version  = var.mysql_engine_version
+  sku_name = var.mysql_sku_name
+  zone     = var.mysql_zone
+}
 
 #################################################################
 # REDIS
 #################################################################
+resource "azurerm_redis_cache" "example" {
+  count               = var.enable_redis ? 1 : 0
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+
+  name                = "redis-${var.project}${var.environment}"
+  capacity            = var.redis_capacity
+  family              = var.redis_family
+  sku_name            = var.redis_sku_name
+
+  redis_configuration {
+  }
+}

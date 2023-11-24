@@ -121,6 +121,221 @@ variable "log_analytics_workspace_retention_in_days" {
 # VIRTUAL NETWORK
 #################################################################
 
+# variable "vnet_address_space" {
+#   type        = list(string)
+#   description = "(Required) The address space that is used the Virtual Network."
+# }
+
+# variable "subnets" {
+#   type = list(object({
+#     name              = string
+#     address_prefixes  = list(string)
+#     service_endpoints = optional(list(string), null)
+#     subnet_delegations = optional(list(object({
+#       name            = string
+#       service_name    = string
+#       service_actions = optional(list(string), null)
+#     })), null)
+#   }))
+#   description = "(Required) A list of subnets to create within the Virtual Network."
+# }
+
+#################################################################
+# RANDOMS
+#################################################################
+# variable "random_config" {
+#   type = object({
+#     login_length          = number
+#     login_special         = optional(bool, false)
+#     login_min_lower       = number
+#     pass_length           = number
+#     pass_special          = optional(bool, true)
+#     pass_override_special = optional(string, null)
+#   })
+#   description = "(Required) Configuration for random generated strings used as db credentials"
+# }
+
+#################################################################
+# POSTGRESQL FLEXIBLE SERVER
+#################################################################
+
+variable "enable_postgresql" {
+  type        = bool
+  description = "(Optional) Option to enable PostgreSQL Flexible Server. Defaults to `false`."
+  default     = false
+}
+
+variable "psql_administrator_login" {
+  type        = string
+  description = "(Optional) Administrator login to be used for Flexible Server."
+  default     = null
+}
+
+variable "psql_administrator_password" {
+  type        = string
+  description = "(Optional) Administrator password to be used for Flexible Server."
+  default     = null
+}
+
+variable "psql_backup_retention_days" {
+  type        = number
+  description = "(Optional) The backup retention days for the Flexible Server. Possible values are between 7 and 35 days."
+  default     = null
+}
+
+variable "psql_geo_redundant_backup_enabled" {
+  type        = bool
+  description = "(Optional) Is Geo-Redundant backup enabled on the Flexible Server. Defaults to false."
+  default     = false
+}
+
+variable "psql_high_availability" {
+  type = object({
+    mode                      = string
+    standby_availability_zone = optional(number, null)
+  })
+  description = "(Optional) High availability configuration for Flexible Server."
+  default     = null
+}
+
+variable "psql_maintenance_window" {
+  type = object({
+    day_of_week  = optional(number, 0)
+    start_hour   = optional(number, 0)
+    start_minute = optional(number, 0)
+  })
+  description = "(Optional) Maintenance windows configuration for Flexible Server."
+  default     = null
+}
+
+variable "psql_engine_version" {
+  type        = number
+  description = "The version of Flexible Server to use."
+  default     = 14
+}
+
+variable "psql_sku_name" {
+  type        = string
+  description = "(Required) The SKU Name for the Flexible Server. The name of the SKU, follows the tier + name pattern"
+  default     = "B_Standard_B1ms"
+}
+
+variable "psql_zone" {
+  type        = number
+  description = "(Optional) Specifies the Availability Zone in which the Flexible Server should be located."
+  default     = 3
+}
+
+variable "psql_storage_mb" {
+  type        = string
+  description = "(Optional) The max storage allowed for the PostgreSQL Flexible Server"
+  default     = "32768"
+}
+
+#################################################################
+# MYSQL FLEXIBLE SERVER
+#################################################################
+
+variable "enable_mysql" {
+  type        = bool
+  description = "(Optional) Option to enable MySQL Flexible Server. Defaults to `false`."
+  default     = false
+}
+
+variable "mysql_administrator_login" {
+  type        = string
+  description = "(Optional) Administrator login to be used for Flexible Server."
+  default     = null
+}
+
+variable "mysql_administrator_password" {
+  type        = string
+  description = "(Optional) Administrator password to be used for Flexible Server."
+  default     = null
+}
+
+variable "mysql_backup_retention_days" {
+  type        = number
+  description = "(Optional) The backup retention days for the Flexible Server. Possible values are between 7 and 35 days."
+  default     = null
+}
+
+variable "mysql_geo_redundant_backup_enabled" {
+  type        = bool
+  description = "(Optional) Is Geo-Redundant backup enabled on the Flexible Server. Defaults to false."
+  default     = false
+}
+
+variable "mysql_high_availability" {
+  type = object({
+    mode                      = string
+    standby_availability_zone = optional(number, null)
+  })
+  description = "(Optional) High availability configuration for Flexible Server."
+  default     = null
+}
+
+variable "mysql_maintenance_window" {
+  type = object({
+    day_of_week  = optional(number, 0)
+    start_hour   = optional(number, 0)
+    start_minute = optional(number, 0)
+  })
+  description = "(Optional) Maintenance windows configuration for Flexible Server."
+  default     = null
+}
+
+variable "mysql_engine_version" {
+  type        = string
+  description = "The version of Flexible Server to use."
+  default     = "8.0.21" 
+}
+
+variable "mysql_sku_name" {
+  type        = string
+  description = "(Required) The SKU Name for the Flexible Server. The name of the SKU, follows the tier + name pattern"
+  default     = "B_Standard_B1ms"
+}
+
+variable "mysql_zone" {
+  type        = number
+  description = "(Optional) Specifies the Availability Zone in which the Flexible Server should be located."
+  default     = 3
+}
+
+variable "mysql_storage" {
+  type = object({
+    auto_grow_enabled = optional(bool, null)
+    iops              = optional(number, null)
+    size_gb           = optional(number, null)
+  })
+  description = "(Optional) A storage configuration block for the MySQL Flexible Server."
+  default     = null
+}
+
 #################################################################
 # REDIS
-#################################################################s
+#################################################################
+variable "enable_redis" {
+  type        = bool
+  description = "(Optional) Option to enable Redis Cache. Defaults to `false`."
+  default     = false
+}
+
+variable "redis_capacity" {
+  type        = number
+  description = "The size of the Redis cache to deploy."
+  default     = 2
+}
+
+variable "redis_family" {
+  type        = string
+  description = "The SKU family/pricing group to use."
+  default     = "C"
+}
+
+variable "redis_sku_name" {
+  type        = string
+  description = "(Optional) The SKU of Redis to use."
+  default     = "Basic"
+}
