@@ -139,6 +139,24 @@ variable "vnet_address_space" {
   default     = ["10.0.0.0/16"]
 }
 
+variable "subnet_app_address_prefixes" {
+  type        = list(string)
+  description = "(Optional) The address prefixes to use for the app subnet."
+  default     = ["10.0.255.192/27"]
+}
+
+variable "subnet_postgresql_address_prefixes" {
+  type        = list(string)
+  description = "(Optional) The address prefixes to use for the PostgreSQL subnet."
+  default     = ["10.0.255.224/27"]
+}
+
+variable "subnet_mysql_address_prefixes" {
+  type        = list(string)
+  description = "(Optional) The address prefixes to use for the MySQL subnet."
+  default     = ["10.0.255.224/27"]
+}
+
 #################################################################
 # POSTGRESQL FLEXIBLE SERVER
 #################################################################

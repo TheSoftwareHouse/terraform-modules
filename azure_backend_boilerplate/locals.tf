@@ -17,7 +17,7 @@ locals {
   subnet_app = [
     {
       name             = "snet-${var.project}-${var.environment}-app"
-      address_prefixes = ["10.0.255.192/27"]
+      address_prefixes = var.subnet_app_address_prefixes
       subnet_delegations = [
         {
           name         = "appService"
@@ -34,7 +34,7 @@ locals {
   subnet_postgresql = var.enable_postgresql == false ? [] : [
     {
       name             = "snet-${var.project}-${var.environment}-postgres"
-      address_prefixes = ["10.0.255.224/27"]
+      address_prefixes = var.subnet_postgresql_address_prefixes
       subnet_delegations = [
         {
           name         = "flexibleServer"
@@ -51,7 +51,7 @@ locals {
   subnet_mysql = var.enable_mysql == false ? [] : [
     {
       name             = "snet-${var.project}-${var.environment}-mysql"
-      address_prefixes = ["10.0.255.224/27"]
+      address_prefixes = var.subnet_mysql_address_prefixes
       subnet_delegations = [
         {
           name         = "flexibleServer"

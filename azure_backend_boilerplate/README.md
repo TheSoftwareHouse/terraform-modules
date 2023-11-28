@@ -150,6 +150,9 @@ No modules.
 | <a name="input_redis_family"></a> [redis\_family](#input\_redis\_family) | The SKU family/pricing group to use. | `string` | `"C"` | no |
 | <a name="input_redis_sku_name"></a> [redis\_sku\_name](#input\_redis\_sku\_name) | (Optional) The SKU of Redis to use. | `string` | `"Basic"` | no |
 | <a name="input_secrets"></a> [secrets](#input\_secrets) | (Optional) List of secrets to add to the keyvault and as environment variables | <pre>list(object({<br>    name  = string<br>    value = optional(string, "")<br>  }))</pre> | `[]` | no |
+| <a name="input_subnet_app_address_prefixes"></a> [subnet\_app\_address\_prefixes](#input\_subnet\_app\_address\_prefixes) | (Optional) The address prefixes to use for the app subnet. | `list(string)` | <pre>[<br>  "10.0.255.192/27"<br>]</pre> | no |
+| <a name="input_subnet_mysql_address_prefixes"></a> [subnet\_mysql\_address\_prefixes](#input\_subnet\_mysql\_address\_prefixes) | (Optional) The address prefixes to use for the MySQL subnet. | `list(string)` | <pre>[<br>  "10.0.255.224/27"<br>]</pre> | no |
+| <a name="input_subnet_postgresql_address_prefixes"></a> [subnet\_postgresql\_address\_prefixes](#input\_subnet\_postgresql\_address\_prefixes) | (Optional) The address prefixes to use for the PostgreSQL subnet. | `list(string)` | <pre>[<br>  "10.0.255.224/27"<br>]</pre> | no |
 | <a name="input_vnet_address_space"></a> [vnet\_address\_space](#input\_vnet\_address\_space) | (Optional) The address space that is used the Virtual Network. | `list(string)` | <pre>[<br>  "10.0.0.0/16"<br>]</pre> | no |
 
 ## Outputs
