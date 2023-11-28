@@ -74,6 +74,18 @@ variable "app_settings" {
   default     = []
 }
 
+variable "logs_retention_in_days" {
+  type        = number
+  description = "(Optional) Specifies the number of days to retain logs for. 0 means no retention. Defaults to 7."
+  default     = 7
+}
+
+variable "logs_retention_in_mb" {
+  type        = number
+  description = "(Optional) Specifies the maximum size of the logs in MB. Defaults to 35."
+  default     = 35
+}
+
 #################################################################
 # CONTAINER REGISTRY
 #################################################################
@@ -117,43 +129,15 @@ variable "log_analytics_workspace_retention_in_days" {
   default     = null
 }
 
-#################################################################
-# VIRTUAL NETWORK
-#################################################################
+################################################################
+#VIRTUAL NETWORK
+################################################################
 
-# variable "vnet_address_space" {
-#   type        = list(string)
-#   description = "(Required) The address space that is used the Virtual Network."
-# }
-
-# variable "subnets" {
-#   type = list(object({
-#     name              = string
-#     address_prefixes  = list(string)
-#     service_endpoints = optional(list(string), null)
-#     subnet_delegations = optional(list(object({
-#       name            = string
-#       service_name    = string
-#       service_actions = optional(list(string), null)
-#     })), null)
-#   }))
-#   description = "(Required) A list of subnets to create within the Virtual Network."
-# }
-
-#################################################################
-# RANDOMS
-#################################################################
-# variable "random_config" {
-#   type = object({
-#     login_length          = number
-#     login_special         = optional(bool, false)
-#     login_min_lower       = number
-#     pass_length           = number
-#     pass_special          = optional(bool, true)
-#     pass_override_special = optional(string, null)
-#   })
-#   description = "(Required) Configuration for random generated strings used as db credentials"
-# }
+variable "vnet_address_space" {
+  type        = list(string)
+  description = "(Optional) The address space that is used the Virtual Network."
+  default     = ["10.0.0.0/16"]
+}
 
 #################################################################
 # POSTGRESQL FLEXIBLE SERVER
@@ -216,7 +200,7 @@ variable "psql_engine_version" {
 
 variable "psql_sku_name" {
   type        = string
-  description = "(Required) The SKU Name for the Flexible Server. The name of the SKU, follows the tier + name pattern"
+  description = "(Optional) The SKU Name for the Flexible Server. The name of the SKU, follows the tier + name pattern"
   default     = "B_Standard_B1ms"
 }
 
@@ -288,7 +272,7 @@ variable "mysql_maintenance_window" {
 variable "mysql_engine_version" {
   type        = string
   description = "The version of Flexible Server to use."
-  default     = "8.0.21" 
+  default     = "8.0.21"
 }
 
 variable "mysql_sku_name" {
@@ -338,4 +322,24 @@ variable "redis_sku_name" {
   type        = string
   description = "(Optional) The SKU of Redis to use."
   default     = "Basic"
+}
+
+variable "redis_configuration" {
+  type = object({
+    aof_backup_enabled              = optional(bool, false)
+    aof_storage_connection_string_0 = optional(string, null)
+    aof_storage_connection_string_1 = optional(string, null)
+    enable_authentication           = optional(bool, true)
+    maxmemory_reserved              = optional(number, 10)
+    maxmemory_delta                 = optional(number, 2)
+    maxmemory_policy                = optional(string, "allkeys-lru")
+    maxfragmentationmemory_reserved = optional(number, null)
+    rdb_backup_enabled              = optional(bool, false)
+    rdb_backup_frequency            = optional(number, null)
+    rdb_backup_max_snapshot_count   = optional(number, null)
+    rdb_storage_connection_string   = optional(string, null)
+    notify_keyspace_events          = optional(string, null)
+  })
+  description = "(Optional) A configuration block for Redis."
+  default     = null
 }

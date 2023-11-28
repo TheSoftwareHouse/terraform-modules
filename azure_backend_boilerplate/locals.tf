@@ -14,28 +14,27 @@ locals {
     "APPLICATIONINSIGHTS_CONFIGURATION_CONTENT"       = var.application_insights_CONFIGURATION_CONTENT
   }
 
-  vnet_address_space  = ["10.0.0.0/16"]
-
   subnet_app = [
     {
-      name             = "snet-${var.project}${var.environment}-app"
-      address_prefixes = ["10.0.1.0/24"]
+      name             = "snet-${var.project}-${var.environment}-app"
+      address_prefixes = ["10.0.255.192/27"]
       subnet_delegations = [
         {
           name         = "appService"
           service_name = "Microsoft.Web/serverFarms"
           service_actions = [
-            "Microsoft.Network/virtualNetworks/subnets/join/action"
+            "Microsoft.Network/virtualNetworks/subnets/action"
           ]
         }
       ]
+      service_endpoints = []
     }
   ]
 
   subnet_postgresql = var.enable_postgresql == false ? [] : [
     {
-      name             = "snet-${var.project}${var.environment}-postgres"
-      address_prefixes = ["10.0.2.0/24"]
+      name             = "snet-${var.project}-${var.environment}-postgres"
+      address_prefixes = ["10.0.255.224/27"]
       subnet_delegations = [
         {
           name         = "flexibleServer"
@@ -45,15 +44,16 @@ locals {
           ]
         }
       ]
+      service_endpoints = ["Microsoft.Storage"]
     }
   ]
 
-  subnet_mysql = var.enable_mysql == false ? [] :[
+  subnet_mysql = var.enable_mysql == false ? [] : [
     {
-      name             = "snet-${var.project}${var.environment}-mysql"
-      address_prefixes = ["10.0.2.0/24"]
+      name             = "snet-${var.project}-${var.environment}-mysql"
+      address_prefixes = ["10.0.255.224/27"]
       subnet_delegations = [
-       {
+        {
           name         = "flexibleServer"
           service_name = "Microsoft.DBforMySQL/flexibleServers"
           service_actions = [
@@ -61,6 +61,7 @@ locals {
           ]
         }
       ]
+      service_endpoints = ["Microsoft.Storage"]
     }
   ]
 
@@ -70,7 +71,7 @@ locals {
       type = "psql"
     }
   ]
-  
+
   dns_zone_mysql = var.enable_mysql == false ? [] : [
     {
       name = "privatelink.mysql.database.azure.com"
@@ -83,7 +84,7 @@ locals {
     login_min_lower       = 8
     pass_length           = 24
     pass_override_special = "!#$%&*()-_=+[]{}<>:?"
-    login_special = false
-    pass_special = true
+    login_special         = false
+    pass_special          = true
   }
 }

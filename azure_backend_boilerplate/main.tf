@@ -95,7 +95,7 @@ resource "azurerm_linux_web_app" "this" {
 
   https_only = true
 
-  virtual_network_subnet_id = azurerm_subnet.this["snet-${var.project}${var.environment}-app"].id
+  virtual_network_subnet_id = azurerm_subnet.this["snet-${var.project}-${var.environment}-app"].id
 
   site_config {
     container_registry_use_managed_identity = true
@@ -103,7 +103,8 @@ resource "azurerm_linux_web_app" "this" {
     http2_enabled = var.app_http2_enabled
 
     application_stack {
-      docker_image_name = var.image_name_tag
+      docker_registry_url = "https://${azurerm_container_registry.this.login_server}"
+      docker_image_name   = var.image_name_tag
     }
 
     dynamic "cors" {
@@ -115,14 +116,33 @@ resource "azurerm_linux_web_app" "this" {
     }
   }
 
+  logs {
+    detailed_error_messages = true
+    failed_request_tracing  = true
+
+    http_logs {
+      file_system {
+        retention_in_days = var.logs_retention_in_days
+        retention_in_mb   = var.logs_retention_in_mb
+      }
+    }
+  }
+
   identity {
     type = "SystemAssigned"
   }
 
-  app_settings = merge({ "DOCKER_ENABLE_CI" = "true" },
+  app_settings = merge({ "DOCKER_ENABLE_CI" = "true", "WEBSITE_PULL_IMAGE_OVER_VNET" = "true" },
     { for secrets in azurerm_key_vault_secret.this : replace(secrets.name, "-", "_") => "@Microsoft.KeyVault(SecretUri=${secrets.versionless_id}/)" },
     { for app_settings in var.app_settings : replace(app_settings.name, "-", "_") => app_settings.value },
   local.application_insights_env_variables)
+
+  lifecycle {
+    ignore_changes = [
+      site_config[0].application_stack[0].docker_registry_url,
+      site_config[0].application_stack[0].docker_image_name
+    ]
+  }
 }
 
 #################################################################
@@ -171,10 +191,10 @@ resource "azurerm_application_insights" "this" {
 # VIRTUAL NETWORK
 #################################################################
 resource "azurerm_virtual_network" "this" {
-  name                = "vnet-${var.project}${var.environment}"
+  name                = "vnet-${var.project}-${var.environment}"
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
-  address_space       = local.vnet_address_space
+  address_space       = var.vnet_address_space
 }
 
 #################################################################
@@ -198,13 +218,15 @@ resource "azurerm_subnet" "this" {
       }
     }
   }
+
+  service_endpoints = each.value.service_endpoints
 }
 
 #################################################################
 # PRIVATE DNS ZONE
 #################################################################
 resource "azurerm_private_dns_zone" "this" {
-  for_each = { for dns_zone in concat(local.dns_zone_postgresql, local.dns_zone_mysql) : dns_zone.name => dns_zone }
+  for_each            = { for dns_zone in concat(local.dns_zone_postgresql, local.dns_zone_mysql) : dns_zone.name => dns_zone }
   name                = each.value.name
   resource_group_name = azurerm_resource_group.this.name
 }
@@ -213,9 +235,9 @@ resource "azurerm_private_dns_zone" "this" {
 # VIRTUAL NETWORK LINK
 #################################################################
 resource "azurerm_private_dns_zone_virtual_network_link" "this" {
-  for_each = { for dns_zone in concat(local.dns_zone_postgresql, local.dns_zone_mysql) : dns_zone.name => dns_zone }
-  name                  = "vdn-${each.value.type}-${var.project}${var.environment}"
-  private_dns_zone_name = each.value.name
+  for_each              = { for dns_zone in concat(local.dns_zone_postgresql, local.dns_zone_mysql) : dns_zone.name => dns_zone }
+  name                  = "vdn-${each.value.type}-${var.project}-${var.environment}"
+  private_dns_zone_name = azurerm_private_dns_zone.this[each.key].name
   resource_group_name   = azurerm_resource_group.this.name
   virtual_network_id    = azurerm_virtual_network.this.id
 }
@@ -243,8 +265,8 @@ resource "azurerm_postgresql_flexible_server" "this" {
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
 
-  name                   = "psql-${var.project}${var.environment}"
-  delegated_subnet_id    = azurerm_subnet.this["snet-${var.project}${var.environment}-postgres"].id
+  name                   = "psql-${var.project}-${var.environment}"
+  delegated_subnet_id    = azurerm_subnet.this["snet-${var.project}-${var.environment}-postgres"].id
   private_dns_zone_id    = azurerm_private_dns_zone.this["privatelink.postgres.database.azure.com"].id
   administrator_login    = var.psql_administrator_login == null ? random_string.this.result : var.psql_administrator_login
   administrator_password = var.psql_administrator_password == null ? random_password.this.result : var.psql_administrator_password
@@ -273,6 +295,8 @@ resource "azurerm_postgresql_flexible_server" "this" {
   sku_name   = var.psql_sku_name
   storage_mb = var.psql_storage_mb
   zone       = var.psql_zone
+
+  depends_on = [azurerm_subnet.this, azurerm_private_dns_zone.this, azurerm_private_dns_zone_virtual_network_link.this]
 }
 
 #################################################################
@@ -283,8 +307,8 @@ resource "azurerm_mysql_flexible_server" "this" {
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
 
-  name                   = "mysql-${var.project}${var.environment}"
-  delegated_subnet_id    = azurerm_subnet.this["snet-${var.project}${var.environment}-mysql"].id
+  name                   = "mysql-${var.project}-${var.environment}"
+  delegated_subnet_id    = azurerm_subnet.this["snet-${var.project}-${var.environment}-mysql"].id
   private_dns_zone_id    = azurerm_private_dns_zone.this["privatelink.mysql.database.azure.com"].id
   administrator_login    = var.mysql_administrator_login == null ? random_string.this.result : var.mysql_administrator_login
   administrator_password = var.mysql_administrator_password == null ? random_password.this.result : var.mysql_administrator_password
@@ -321,21 +345,39 @@ resource "azurerm_mysql_flexible_server" "this" {
   version  = var.mysql_engine_version
   sku_name = var.mysql_sku_name
   zone     = var.mysql_zone
+
+  depends_on = [azurerm_subnet.this, azurerm_private_dns_zone.this, azurerm_private_dns_zone_virtual_network_link.this]
 }
 
 #################################################################
 # REDIS
 #################################################################
-resource "azurerm_redis_cache" "example" {
+resource "azurerm_redis_cache" "this" {
   count               = var.enable_redis ? 1 : 0
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
 
-  name                = "redis-${var.project}${var.environment}"
-  capacity            = var.redis_capacity
-  family              = var.redis_family
-  sku_name            = var.redis_sku_name
+  name     = "redis-${var.project}-${var.environment}"
+  capacity = var.redis_capacity
+  family   = var.redis_family
+  sku_name = var.redis_sku_name
 
-  redis_configuration {
+  dynamic "redis_configuration" {
+    for_each = var.redis_configuration != null ? [var.redis_configuration] : []
+    content {
+      aof_backup_enabled              = redis_configuration.value.aof_backup_enabled
+      aof_storage_connection_string_0 = redis_configuration.value.aof_storage_connection_string_0
+      aof_storage_connection_string_1 = redis_configuration.value.aof_storage_connection_string_1
+      enable_authentication           = redis_configuration.value.enable_authentication
+      maxmemory_reserved              = redis_configuration.value.maxmemory_reserved
+      maxmemory_delta                 = redis_configuration.value.maxmemory_delta
+      maxmemory_policy                = redis_configuration.value.maxmemory_policy
+      maxfragmentationmemory_reserved = redis_configuration.value.maxfragmentationmemory_reserved
+      rdb_backup_enabled              = redis_configuration.value.rdb_backup_enabled
+      rdb_backup_frequency            = redis_configuration.value.rdb_backup_frequency
+      rdb_backup_max_snapshot_count   = redis_configuration.value.rdb_backup_max_snapshot_count
+      rdb_storage_connection_string   = redis_configuration.value.rdb_storage_connection_string
+      notify_keyspace_events          = redis_configuration.value.notify_keyspace_events
+    }
   }
 }
