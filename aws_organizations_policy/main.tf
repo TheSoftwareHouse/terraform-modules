@@ -11,6 +11,6 @@ resource "aws_organizations_policy" "this" {
 resource "aws_organizations_policy_attachment" "this" {
   for_each     = var.policies
 
-  policy_id    = aws_organizations_policy.this.id
+  policy_id    = aws_organizations_policy.this[each.key].id
   target_id    = each.value["policy_target_id"]
 }
