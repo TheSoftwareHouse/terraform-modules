@@ -14,7 +14,7 @@ variable "policies" {
     content          = ""
     description      = "Service Control Policy attached to organization."
     type             = "SERVICE_CONTROL_POLICY"
-    tags             = []
+    tags             = {}
     policy_target_id = ""
   }
 }
