@@ -23,13 +23,7 @@ variable "location" {
 variable "key_vault_sku_name" {
   type        = string
   description = "(Optional) Sku name for the key vault"
-  default     = "premium"
-}
-
-variable "key_vault_additional_ips" {
-  type        = list(string)
-  description = "(Optional) List of additional IPs to grant access to the Key Vault"
-  default     = []
+  default     = "standard"
 }
 
 variable "secrets" {

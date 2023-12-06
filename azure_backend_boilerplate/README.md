@@ -23,8 +23,6 @@ module "backend-boilerplate" {
   environment = "prod"
   location = "northeurope"
 
-  key_vault_additional_ips = [ "<your-ip>" ]
-
   secrets = [
     {
         name = "POSTGRESQL-USER"
@@ -44,7 +42,6 @@ module "backend-boilerplate" {
 ```
 
 Key remarks:
-- Key Vault is restricted to the IP addresses of App Service and the ones provided in `key_vault_additional_ips` variable.
 - To add a environeent variable to App Service, add it to `secrets` variable. It will be added to Key Vault and referenced in the App Service configuration.
 - Both MySql and Postgres are setup within a VNet and you can access it only from the virtual network itself.
 - `image_name_tag` is used to setup an automatic CI between the Container Registry and App Service.
@@ -58,7 +55,6 @@ For list of all available variables and their defaults, check the below table.
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >=1.5.0 |
-| <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) | >= 1.10.0 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | >=3.80 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | >=3.5.1 |
 
@@ -66,7 +62,6 @@ For list of all available variables and their defaults, check the below table.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azapi"></a> [azapi](#provider\_azapi) | >= 1.10.0 |
 | <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | >=3.80 |
 | <a name="provider_random"></a> [random](#provider\_random) | >=3.5.1 |
 
@@ -78,7 +73,6 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [azapi_update_resource.key_vault_network_acls](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/update_resource) | resource |
 | [azurerm_application_insights.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_insights) | resource |
 | [azurerm_container_registry.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_registry) | resource |
 | [azurerm_key_vault.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault) | resource |
@@ -117,8 +111,7 @@ No modules.
 | <a name="input_enable_redis"></a> [enable\_redis](#input\_enable\_redis) | (Optional) Option to enable Redis Cache. Defaults to `false`. | `bool` | `false` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment | `string` | n/a | yes |
 | <a name="input_image_name_tag"></a> [image\_name\_tag](#input\_image\_name\_tag) | Image name and tag that will be used for automatic CI, should be consistent with container registry image name and tag | `string` | n/a | yes |
-| <a name="input_key_vault_additional_ips"></a> [key\_vault\_additional\_ips](#input\_key\_vault\_additional\_ips) | (Optional) List of additional IPs to grant access to the Key Vault | `list(string)` | `[]` | no |
-| <a name="input_key_vault_sku_name"></a> [key\_vault\_sku\_name](#input\_key\_vault\_sku\_name) | (Optional) Sku name for the key vault | `string` | `"premium"` | no |
+| <a name="input_key_vault_sku_name"></a> [key\_vault\_sku\_name](#input\_key\_vault\_sku\_name) | (Optional) Sku name for the key vault | `string` | `"standard"` | no |
 | <a name="input_location"></a> [location](#input\_location) | Location where resources will reside | `string` | n/a | yes |
 | <a name="input_log_analytics_sku"></a> [log\_analytics\_sku](#input\_log\_analytics\_sku) | (Optional) Specifies the SKU of the Log Analytics Workspace. Possible values are Free, PerNode, Premium, Standard, Standalone, Unlimited, CapacityReservation, and PerGB2018 (new SKU as of 2018-04-03). Defaults to Free. | `string` | `"PerGB2018"` | no |
 | <a name="input_log_analytics_workspace_retention_in_days"></a> [log\_analytics\_workspace\_retention\_in\_days](#input\_log\_analytics\_workspace\_retention\_in\_days) | (Optional) The workspace data retention in days. Possible values are either 7 (Free Tier only) or range between 30 and 730. | `number` | `null` | no |
