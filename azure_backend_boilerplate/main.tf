@@ -23,24 +23,6 @@ resource "azurerm_key_vault" "this" {
   sku_name                    = var.key_vault_sku_name
 }
 
-# Break circular dependency
-resource "azapi_update_resource" "key_vault_network_acls" {
-  count       = var.key_vault_sku_name == "premium" ? 1 : 0
-  type        = "Microsoft.KeyVault/vaults@2022-07-01"
-  resource_id = azurerm_key_vault.this.id
-
-  body = jsonencode({
-    properties = {
-      networkAcls = {
-        bypass              = "AzureServices"
-        defaultAction       = "Deny"
-        ipRules             = [for ip in concat(split(",", azurerm_linux_web_app.this.outbound_ip_addresses), var.key_vault_additional_ips) : { value = "${ip}/32" }]
-        virtualNetworkRules = []
-      }
-    }
-  })
-}
-
 resource "azurerm_key_vault_access_policy" "this" {
   key_vault_id = azurerm_key_vault.this.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
