@@ -1,0 +1,17 @@
+{
+    "rules": [
+        {
+            "rulePriority": 1,
+            "description": "Keep images according to the specified number.",
+            "selection": {
+                "tagStatus": "tagged",
+                "tagPrefixList": ["${ecr_lifecyle_policy_tag}"],
+                "countType": "imageCountMoreThan",
+                "countNumber": ${ecr_max_image_count}
+            },
+            "action": {
+                "type": "expire"
+            }
+        }
+    ]
+}
