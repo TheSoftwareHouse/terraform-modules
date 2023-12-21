@@ -1,22 +1,22 @@
 variable "role_name" {
-  description = "Name of the role to create"
+  description = "Name Of The Role To Create"
   type        = string
   default     = "GithubActionsRole"
 }
 
 variable "github_url" {
-  description = "The URL of the token endpoint for Github"
+  description = "The URL Of The Token Endpoint For Github"
   type        = string
   default     = "https://token.actions.githubusercontent.com"
 }
 
 variable "github_org" {
-  description = "Github Org to trust"
+  description = "Github Trusted Organisation"
   type        = string
 }
 
 variable "github_repos" {
-  description = "Github repos to trust"
+  description = "Github Trusted Repositories"
   type        = list(string)
   default     = []
 }
