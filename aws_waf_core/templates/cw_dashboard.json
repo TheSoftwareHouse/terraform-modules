@@ -1,0 +1,329 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "height": 6,
+      "width": 6,
+      "x": 0,
+      "y": 0,
+      "properties": {
+        "metrics": [
+          [
+            "AWS/WAFV2",
+            "AllowedRequests",
+            "WebACL",
+            "${webacl_name}",
+            "Rule",
+            "ALL",
+            {
+              "id": "m1"
+            }
+          ],
+          [
+            ".",
+            "BlockedRequests",
+            ".",
+            ".",
+            ".",
+            ".",
+            {
+              "id": "m2"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "stacked": true,
+        "region": "${aws_region}",
+        "stat": "Sum",
+        "title": "Allowed vs Blocked Requests For ${aws_region}",
+        "period": 300,
+        "yAxis": {
+          "left": {
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "height": 6,
+      "width": 6,
+      "x": 6,
+      "y": 0,
+      "properties": {
+        "metrics": [
+          [
+            "AWS/WAFV2",
+            "CountedRequests",
+            "WebACL",
+            "${webacl_name}",
+            "Rule",
+            "ALL"
+          ]
+        ],
+        "view": "timeSeries",
+        "stacked": true,
+        "region": "${aws_region}",
+        "stat": "Sum",
+        "title": "All Counted Requests for ${aws_region}",
+        "period": 300,
+        "yAxis": {
+          "left": {
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "height": 6,
+      "width": 6,
+      "x": 12,
+      "y": 0,
+      "properties": {
+        "metrics": [
+          [
+            {
+              "id": "e1",
+              "expression": "SEARCH('{AWS/WAFV2,Region,Rule,WebACL} MetricName=\"AllowedRequests\" Region=\"${aws_region}\" WebACL=\"${webacl_name}\" Rule=\"ALL\"', 'Sum', 300)",
+              "stat": "Sum",
+              "period": 300,
+              "visible": false
+            }
+          ],
+          [
+            {
+              "id": "e2",
+              "expression": "SEARCH('{AWS/WAFV2,Region,Rule,WebACL} MetricName=\"BlockedRequests\" Region=\"${aws_region}\" WebACL=\"${webacl_name}\" Rule=\"ALL\"', 'Sum', 300)",
+              "stat": "Sum",
+              "period": 300,
+              "visible": false
+            }
+          ],
+          [
+            {
+              "id": "e3",
+              "expression": "SEARCH('{AWS/WAFV2,LabelName,LabelNamespace,Region,WebACL} MetricName=\"AllowedRequests\" LabelNamespace=\"awswaf:managed:aws:bot-control:bot:category\" Region=\"${aws_region}\" WebACL=\"${webacl_name}\"', 'Sum', 300)",
+              "period": 300,
+              "visible": false
+            }
+          ],
+          [
+            {
+              "id": "e4",
+              "expression": "SEARCH('{AWS/WAFV2,LabelName,LabelNamespace,Region,WebACL} MetricName=\"BlockedRequests\" LabelNamespace=\"awswaf:managed:aws:bot-control:bot:category\" Region=\"${aws_region}\" WebACL=\"${webacl_name}\"', 'Sum', 300)",
+              "period": 300,
+              "visible": false
+            }
+          ],
+          [
+            {
+              "id": "e5",
+              "expression": "SUM([e3,e4])",
+              "label": "Bot requests",
+              "color": "#FF7F0E"
+            }
+          ],
+          [
+            {
+              "id": "e6",
+              "expression": "SUM([e1,e2,-e3,-e4])",
+              "label": "Non-bot requests",
+              "color": "#1F77B4"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "stacked": true,
+        "region": "${aws_region}",
+        "stat": "Average",
+        "title": "Bot Requests vs Non-Bot Requests For ${aws_region}",
+        "period": 300,
+        "liveData": false,
+        "yAxis": {
+          "left": {
+            "showUnits": false,
+            "min": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "log",
+      "height": 6,
+      "width": 6,
+      "x": 6,
+      "y": 6,
+      "properties": {
+        "query": "SOURCE '${webacl_log_group_name}' | fields httpRequest.clientIp\n| stats count(*) as requestCount by httpRequest.country\n| sort requestCount desc\n| limit 100",
+        "region": "${aws_region}",
+        "title": "Top Countries For ${aws_region}",
+        "view": "pie"
+      }
+    },
+    {
+      "type": "log",
+      "height": 6,
+      "width": 12,
+      "x": 12,
+      "y": 6,
+      "properties": {
+        "query": "SOURCE '${webacl_log_group_name}' | fields @timestamp, @message\n| parse @message /\\{\"name\":\"[Uu]ser\\-[Aa]gent\\\",\\\"value\\\"\\:\\\"(?<UserAgent>[^\"}]*)/\n| stats count(*) as requestCount by UserAgent\n| sort requestCount desc\n| limit 100",
+        "region": "${aws_region}",
+        "title": "Top User-Agents For ${aws_region}",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "height": 6,
+      "width": 6,
+      "x": 18,
+      "y": 0,
+      "properties": {
+        "query": "SOURCE '${webacl_log_group_name}' | fields httpRequest.clientIp\n| stats count(*) as requestCount by httpRequest.clientIp\n| sort requestCount desc\n| limit 100",
+        "region": "${aws_region}",
+        "title": "Top IP Addresses For ${aws_region}",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "height": 6,
+      "width": 6,
+      "x": 0,
+      "y": 12,
+      "properties": {
+        "query": "SOURCE '${webacl_log_group_name}' | fields @timestamp, @message\n| filter @message like /\"action\":\"BLOCK\"/\n| stats count(*) as requestCount by httpRequest.uri\n| sort requestCount  desc\n| limit 100",
+        "region": "${aws_region}",
+        "title": "Top Blocked URIs For ${aws_region}",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "height": 6,
+      "width": 6,
+      "x": 0,
+      "y": 6,
+      "properties": {
+        "query": "SOURCE '${webacl_log_group_name}' | fields httpRequest.clientIp\n| stats count(*) as requestCount by httpRequest.clientIp\n| sort requestCount desc\n| limit 100",
+        "region": "${aws_region}",
+        "title": "Top IP Addresses For ${aws_region}",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "height": 6,
+      "width": 6,
+      "x": 18,
+      "y": 12,
+      "properties": {
+        "query": "SOURCE '${webacl_log_group_name}' | fields @timestamp, @message\n| filter @message like \"COUNT\"\n| sort @timestamp desc\n| parse @message '\"nonTerminatingMatchingRules\":[{*}]' as nonTerminatingMatchingRules\n| parse @message '\"excludedRules\":[{*}]' as excludedRules\n| display @timestamp, httpRequest.clientIp,httpRequest.uri, httpRequest.country, excludedRules, nonTerminatingMatchingRules\n| limit 100",
+        "region": "${aws_region}",
+        "title": "Counted Requests For ${aws_region}",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "height": 6,
+      "width": 6,
+      "x": 12,
+      "y": 12,
+      "properties": {
+        "query": "SOURCE '${webacl_log_group_name}' | fields @timestamp, @message\n| filter @message like /\"action\":\"BLOCK\"/\n| sort @timestamp desc\n| display @timestamp, httpRequest.clientIp,httpRequest.uri, httpRequest.country, terminatingRuleId\n| limit 100",
+        "region": "${aws_region}",
+        "title": "Blocked Requests For ${aws_region}",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "x": 6,
+      "y": 12,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "query": "SOURCE '${webacl_log_group_name}' | fields httpRequest.clientIp\n| stats count(*) as requestCount by httpRequest.httpMethod as Method\n| sort requestCount desc\n| limit 10",
+        "view": "table",
+        "yAxis": {
+          "left": {
+            "showUnits": false
+          },
+          "right": {
+            "showUnits": false
+          }
+        },
+        "region": "${aws_region}",
+        "title": "Top HTTP Methods for ${aws_region}",
+        "legend": {
+          "position": "right"
+        }
+      }
+    },
+    {
+      "type": "log",
+      "height": 6,
+      "width": 6,
+      "x": 0,
+      "y": 18,
+      "properties": {
+        "query": "SOURCE '${webacl_log_group_name}' | fields @timestamp, httpRequest.clientIp, httpRequest.requestId, captchaResponse.failureReason, @message\n| filter captchaResponse.failureReason = \"TOKEN_MISSING\"\n| sort @timestamp desc\n| limit 100",
+        "region": "${aws_region}",
+        "title": "Top 100 Invalid Captcha Requests For ${aws_region}",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "height": 6,
+      "width": 6,
+      "x": 6,
+      "y": 18,
+      "properties": {
+        "query": "SOURCE '${webacl_log_group_name}' | fields terminatingRuleMatchDetails, terminatingRuleId, action, @message\n| filter terminatingRuleId != \"Default_Action\" and action != \"ALLOW\"\n| stats count(*) as requestCount by httpRequest.clientIp, httpRequest.country\n| display httpRequest.clientIp,httpRequest.uri, httpRequest.country, terminatingRuleMatchDetails\n| limit 10",
+        "region": "${aws_region}",
+        "title": "Top 10 Terminating Rules For ${aws_region}",
+        "view": "timeSeries",
+        "legend": {
+          "position": "right"
+        },
+        "stacked": false,
+        "yAxis": {
+          "left": {
+            "showUnits": false
+          },
+          "right": {
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "log",
+      "x": 12,
+      "y": 18,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "query": "SOURCE '${webacl_log_group_name}' | fields httpRequest.clientIp\n| stats count(*) as requestCount by httpRequest.uri as URI\n| sort requestCount desc\n| limit 10",
+        "view": "table",
+        "yAxis": {
+          "left": {
+            "showUnits": false
+          },
+          "right": {
+            "showUnits": false
+          }
+        },
+        "region": "${aws_region}",
+        "title": "Top 10 URIs For ${aws_region}",
+        "legend": {
+          "position": "right"
+        }
+      }
+    }
+  ]
+}
