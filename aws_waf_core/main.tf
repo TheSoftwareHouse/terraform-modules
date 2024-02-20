@@ -177,7 +177,7 @@ resource "aws_wafv2_web_acl" "main" {
   }
 
   rule {
-    name     = "xpate-bad-user-agents"
+    name     = "bad-user-agents"
     priority = 12
 
     action {

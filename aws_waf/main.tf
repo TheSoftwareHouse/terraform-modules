@@ -53,28 +53,28 @@ module "aws_waf" {
     }
   ]
   ip_set_rules = {
-    "xpate-blacklist-ip-v4" = {
+    "blacklist-ip-v4" = {
       priority            = 5
       ip_address_version  = "IPV4"
       action              = "block"
       addresses           = local.blacklisted_ipv4_addresses
       alarm_configuration = null
     }
-    "xpate-blacklist-ip-v6" = {
+    "blacklist-ip-v6" = {
       priority            = 6
       ip_address_version  = "IPV6"
       action              = "block"
       addresses           = local.blacklisted_ipv6_addresses
       alarm_configuration = null
     }
-    "xpate-whitelist-ip-v4" = {
+    "whitelist-ip-v4" = {
       priority            = 10
       ip_address_version  = "IPV4"
       action              = "allow"
       addresses           = local.whitelisted_ipv4_addresses
       alarm_configuration = null
     }
-    "xpate-whitelist-ip-v6" = {
+    "whitelist-ip-v6" = {
       priority            = 11
       ip_address_version  = "IPV6"
       action              = "allow"
@@ -83,7 +83,7 @@ module "aws_waf" {
     }
   }
   ip_rate_based_rules = {
-    "xpate-rate-limit" = {
+    "rate-limit" = {
       priority            = "15"
       action              = "block"
       limit               = local.aws_rate_limit
@@ -91,7 +91,7 @@ module "aws_waf" {
     }
   }
   geo_match_rules = {
-    "xpate-geo-blacklist" = {
+    "geo-blacklist" = {
       priority            = 16
       action              = local.aws_access_mode
       country_codes       = keys(local.blacklisted_countries)
