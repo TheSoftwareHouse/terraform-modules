@@ -10,6 +10,7 @@ resource "aws_organizations_organization" "this" {
     "config-multiaccountsetup.amazonaws.com",
     "config.amazonaws.com",
     "controltower.amazonaws.com",
+    "cost-optimization-hub.bcm.amazonaws.com",
     "ds.amazonaws.com",
     "fms.amazonaws.com",
     "guardduty.amazonaws.com",
